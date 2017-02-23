@@ -7,7 +7,8 @@
     var scale = 0;
     var tid;
     var flexible = lib.flexible || (lib.flexible = {});
-    
+    var allowRefreshRemOnResize = true;
+
     if (metaEl) {
         console.warn('将根据已有的meta标签来设置缩放比例');
         var match = metaEl.getAttribute('content').match(/initial\-scale=([\d\.]+)/);
@@ -22,11 +23,11 @@
             var maximumDpr = content.match(/maximum\-dpr=([\d\.]+)/);
             if (initialDpr) {
                 dpr = parseFloat(initialDpr[1]);
-                scale = parseFloat((1 / dpr).toFixed(2));    
+                scale = parseFloat((1 / dpr).toFixed(2));
             }
             if (maximumDpr) {
                 dpr = parseFloat(maximumDpr[1]);
-                scale = parseFloat((1 / dpr).toFixed(2));    
+                scale = parseFloat((1 / dpr).toFixed(2));
             }
         }
     }
@@ -37,7 +38,7 @@
         var devicePixelRatio = win.devicePixelRatio;
         if (isIPhone) {
             // iOS下，对于2和3的屏，用2倍的方案，其余的用1倍方案
-            if (devicePixelRatio >= 3 && (!dpr || dpr >= 3)) {                
+            if (devicePixelRatio >= 3 && (!dpr || dpr >= 3)) {
                 dpr = 3;
             } else if (devicePixelRatio >= 2 && (!dpr || dpr >= 2)){
                 dpr = 2;
@@ -74,10 +75,15 @@
         docEl.style.fontSize = rem + 'px';
         flexible.rem = win.rem = rem;
     }
+    function isAllowRefreshRemOnResize() {
+      return allowRefreshRemOnResize;
+    }
 
     win.addEventListener('resize', function() {
-        clearTimeout(tid);
-        tid = setTimeout(refreshRem, 300);
+        if (isAllowRefreshRemOnResize()) {
+          clearTimeout(tid);
+          tid = setTimeout(refreshRem, 300);
+        }
     }, false);
     win.addEventListener('pageshow', function(e) {
         if (e.persisted) {
@@ -93,7 +99,7 @@
             doc.body.style.fontSize = 12 * dpr + 'px';
         }, false);
     }
-    
+
 
     refreshRem();
 
@@ -112,6 +118,9 @@
             val += 'rem';
         }
         return val;
+    }
+    flexible.setAllowRefreshRemOnResize = function (b) {
+      allowRefreshRemOnResize = Boolean(b);
     }
 
 })(window, window['lib'] || (window['lib'] = {}));
